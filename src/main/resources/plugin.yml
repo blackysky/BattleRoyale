@@ -1,0 +1,7 @@
+name: BattleRoyale
+version: '${project.version}'
+main: ru.silke.battleroyale.main
+api-version: 1.19
+authors: [ Silke ]
+description: Плагин со странной идеей на странный сервер
+website: github.com/blackysky
