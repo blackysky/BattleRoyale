@@ -11,7 +11,7 @@ public class ConfirmationTabCompleter implements TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
 
-        String[] confirmationId = {"confirmationId"};
+        String[] confirmationId = {"remove_lead_player", "remove_yourself_from_lead_players"};
         String[] actions = {"confirm", "cancel"};
 
         // Если команда /confirm, то предлагаем ввести <confirmationId>

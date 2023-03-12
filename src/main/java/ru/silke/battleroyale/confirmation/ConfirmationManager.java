@@ -5,10 +5,17 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ClickEvent.Action;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import ru.silke.battleroyale.managers.LeadManager;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
+
+import static ru.silke.battleroyale.main.plugin;
 
 /**
  * Класс для управления запросами на подтверждение действий игроков
@@ -28,7 +35,7 @@ public class ConfirmationManager {
      * @param confirmationId      Уникальный идентификатор запроса на подтверждение
      * @param confirmationMessage Сообщение, которое будет отображаться в запросе на подтверждение
      */
-    public void sendConfirmation(Player player, String confirmationId, String confirmationMessage) {
+    public void sendConfirmation(Player player, String target, String confirmationId, String confirmationMessage) {
         // Проверяем, не ждёт ли игрок уже какого-то подтверждения
         if (confirmations.containsKey(player.getUniqueId())) {
             player.sendMessage("Подтверждение уже отправлено!");
@@ -72,48 +79,69 @@ public class ConfirmationManager {
                     // Здесь можно добавить код, который нужно выполнить при подтверждении
                 },
                 player.getUniqueId(),
-                System.currentTimeMillis() + 10000)
+                System.currentTimeMillis() + 10000, target)
         );
     }
 
-    /**
-     * Обрабатывает ответ на запрос на подтверждение
-     *
-     * @param player             Игрок, который ответил на запрос
-     * @param confirmationId     Идентификатор подтверждения
-     * @param confirmationAnswer Ответ на подтверждение (confirm/cancel)
-     */
-    public void processConfirmation(Player player, String confirmationId, String confirmationAnswer) {
-        // Проверяем, есть ли запрос на подтверждение для данного игрока
-        UUID playerId = player.getUniqueId();
-        if (!confirmations.containsKey(playerId)) {
-            player.sendMessage("Запрос на подтверждение не найден!");
+    public void processConfirmation(UUID playerUUID, String confirmationId, boolean confirmed) {
+        FileConfiguration config = plugin.getConfig();
+        ConfirmationManager confirmationManager = new ConfirmationManager();
+        LeadManager leadManager = new LeadManager();
+        String[] leadPlayers = leadManager.getLeadPlayers();
+
+        if (!confirmed) {
+            // Если игрок ответил "нет", то сообщаем об отмене действия
+            Player player = Bukkit.getPlayer(playerUUID);
+            if (player != null) {
+                player.sendMessage("Действие было отменено.");
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 1.0f);
+            }
             return;
         }
 
-        ConfirmationData confirmationData = confirmations.get(playerId);
+        if (confirmationId.equals("remove_yourself_from_lead_players")) {
+            ConfirmationData confirmationData = confirmationManager.getConfirmation(playerUUID);
+            String target = confirmationData.getTarget();
+            // Удаление игрока из списка ведущих
+            String[] newLeadPlayers = new String[leadPlayers.length - 1];
+            int index = 0;
+            for (String leadPlayer : leadPlayers) {
+                if (!leadPlayer.equals(target)) {
+                    newLeadPlayers[index] = leadPlayer;
+                    index++;
+                }
+            }
+            leadPlayers = newLeadPlayers;
 
-        // Проверяем, что идентификатор подтверждения совпадает с тем, что был отправлен
-        if (!confirmationData.getConfirmationId().equals(confirmationId)) {
-            player.sendMessage("Идентификатор подтверждения не совпадает!");
-            return;
+            config.set("leadPlayers", Arrays.toString(leadPlayers));
+            plugin.saveConfig();
+
+            Player executor = Bukkit.getPlayer(playerUUID);
+            executor.sendMessage("Вы удалены из списка ведущих!");
+            executor.playSound(executor.getLocation(), "minecraft:entity.experience_orb.pickup", 1, 1);
+        } else if (confirmationId.equals("remove_lead_player")) {
+            // Удаление игрока из списка ведущих
+            ConfirmationData confirmationData = confirmationManager.getConfirmation(playerUUID);
+            String target = confirmationData.getTarget();
+            String[] newLeadPlayers = new String[leadPlayers.length - 1];
+            int index = 0;
+            for (String leadPlayer : leadPlayers) {
+                if (!leadPlayer.equals(target)) {
+                    newLeadPlayers[index] = leadPlayer;
+                    index++;
+                }
+            }
+            leadPlayers = newLeadPlayers;
+
+            config.set("leadPlayers", Arrays.toString(leadPlayers));
+            plugin.saveConfig();
+
+            Player executor = Bukkit.getPlayer(playerUUID);
+            executor.sendMessage("Игрок " + ChatColor.GREEN + target + ChatColor.WHITE + " удален из списка ведущих!");
+            executor.playSound(executor.getLocation(), "minecraft:entity.experience_orb.pickup", 1, 1);
         }
-
-        // Проверяем, что время на подтверждение не истекло
-        if (confirmationData.getExpirationTime() < System.currentTimeMillis()) {
-            player.sendMessage("Время на подтверждение истекло!");
-            confirmations.remove(player.getUniqueId());
-            return;
-        }
-
-        // Вызываем обработчик подтверждения
-        confirmationData.getConfirmationHandler().onConfirm(player);
-
-        // Удаляем данные о подтверждении из списка
-        confirmations.remove(player.getUniqueId());
-
-        player.sendMessage(ChatColor.GREEN + "Операция успешно выполнена!");
     }
+
 
     /**
      * Удаляет данные о подтверждении для данного игрока.
@@ -122,6 +150,16 @@ public class ConfirmationManager {
      */
     public void removeConfirmationData(UUID playerUUID) {
         confirmations.remove(playerUUID);
+    }
+
+    /**
+     * Возвращает данные о подтверждении для данного игрока.
+     *
+     * @param playerUUID UUID игрока, для которого нужно получить данные о подтверждении
+     * @return Данные о подтверждении
+     */
+    public ConfirmationData getConfirmation(UUID playerUUID) {
+        return confirmations.get(playerUUID);
     }
 
     /**

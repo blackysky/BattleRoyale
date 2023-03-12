@@ -11,17 +11,18 @@ public class ConfirmationData {
     private final long expirationTime;
     private final String confirmationMessage;
     private final ConfirmationHandler confirmationHandler;
+    private final String target;
 
     /**
      * Создает объект класса ConfirmationData.
-     *
-     * @param confirmationId      уникальный идентификатор подтверждения
+     *  @param confirmationId      уникальный идентификатор подтверждения
      * @param confirmationMessage сообщение, которое нужно подтвердить
      * @param confirmationHandler обработчик подтверждения
      * @param playerId            идентификатор игрока, которому отправляется запрос на подтверждение
      * @param expirationTime      время истечения запроса на подтверждение в миллисекундах
+     * @param target
      */
-    public ConfirmationData(String confirmationId, String confirmationMessage, ConfirmationHandler confirmationHandler, UUID playerId, long expirationTime) {
+    public ConfirmationData(String confirmationId, String confirmationMessage, ConfirmationHandler confirmationHandler, UUID playerId, long expirationTime, String target) {
         // Класс ConfirmationData хранит данные о запросе на подтверждение от игрока.
         // Данные включают в себя: уникальный идентификатор подтверждения, сообщение, которое нужно подтвердить,
         // обработчик подтверждения, идентификатор игрока и время истечения запроса на подтверждение.
@@ -30,6 +31,7 @@ public class ConfirmationData {
         this.confirmationHandler = confirmationHandler;
         this.playerUUID = playerId;
         this.expirationTime = expirationTime;
+        this.target = target;
     }
 
     /**
@@ -66,6 +68,15 @@ public class ConfirmationData {
      */
     public ConfirmationHandler getConfirmationHandler() {
         return confirmationHandler;
+    }
+
+    /**
+     * Возвращает цель запроса на подтверждение.
+     *
+     * @return цель запроса на подтверждение
+     */
+    public String getTarget() {
+        return target;
     }
 
     /**

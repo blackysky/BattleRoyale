@@ -48,35 +48,11 @@ public class LeadManager {
      */
     public void removeLeadPlayer(Player executor, String target) {
 
-        if (executor.getName().equals(executor.getName())) {
-            confirmationManager.sendConfirmation(executor, "remove_youself_from_lead_players", "Вы уверены, что хотите удалить себя из списка ведущих?");
+        if (target.equals(executor.getName())) {
+            confirmationManager.sendConfirmation(executor, target, "remove_yourself_from_lead_players", "Вы уверены, что хотите удалить себя из списка ведущих?");
         } else {
-            confirmationManager.sendConfirmation(executor, "remove_lead_player", "Вы уверены, что хотите удалить игрока " + ChatColor.GREEN + target + ChatColor.WHITE + " из списка ведущих?");
+            confirmationManager.sendConfirmation(executor, target, "remove_lead_player", "Вы уверены, что хотите удалить игрока " + ChatColor.GREEN + target + ChatColor.WHITE + " из списка ведущих?");
         }
-
-        // Если игрока нет в списке ведущих, то выходим предупреждение
-        if (!Arrays.asList(leadPlayers).contains(target)) {
-            executor.sendMessage("Игрок " + ChatColor.GREEN + target + ChatColor.WHITE + " не найден в списке ведущих!");
-            executor.playSound(executor.getLocation(), "minecraft:entity.experience_orb.pickup", 1, 1);
-            return;
-        }
-
-        // Удаляем игрока из списка ведущих
-        String[] newLeadPlayers = new String[leadPlayers.length - 1];
-        int index = 0;
-        for (String leadPlayer : leadPlayers) {
-            if (!leadPlayer.equals(target)) {
-                newLeadPlayers[index] = leadPlayer;
-                index++;
-            }
-        }
-        leadPlayers = newLeadPlayers;
-
-        config.set("leadPlayers", Arrays.toString(leadPlayers));
-        main.plugin.saveConfig();
-
-        executor.sendMessage("Игрок " + ChatColor.GREEN + target + ChatColor.WHITE + " удален из списка ведущих!");
-        executor.playSound(executor.getLocation(), "minecraft:entity.experience_orb.pickup", 1, 1);
     }
 
     /**

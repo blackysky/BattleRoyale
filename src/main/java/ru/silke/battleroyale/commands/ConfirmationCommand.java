@@ -53,6 +53,9 @@ public class ConfirmationCommand implements CommandExecutor {
             // Вызываем обработчик подтверждения
             confirmationData.getConfirmationHandler().onConfirm(player);
 
+            // Вызываем обработчик подтверждения из ConfirmationManager
+            confirmationManager.processConfirmation(playerUUID, confirmationId,true);
+
             // Удаляем данные о подтверждении из HashMap
             confirmationManager.removeConfirmationData(playerUUID);
 
