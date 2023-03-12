@@ -5,3 +5,12 @@ api-version: 1.19
 authors: [ Silke ]
 description: Плагин со странной идеей на странный сервер
 website: github.com/blackysky
+commands:
+  lead:
+    description: Управление лидерами
+    usage: /lead <add/remove/list>
+    permission: battle.lead
+  hp:
+    description: Управление здоровьем
+    usage: /hp
+    permission: hp
