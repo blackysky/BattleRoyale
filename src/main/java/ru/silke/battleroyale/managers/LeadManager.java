@@ -3,6 +3,7 @@ package ru.silke.battleroyale.managers;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import ru.silke.battleroyale.confirmation.ConfirmationManager;
 import ru.silke.battleroyale.main;
 
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.Arrays;
 public class LeadManager {
 
     FileConfiguration config = main.plugin.getConfig();
+    ConfirmationManager confirmationManager = new ConfirmationManager();
     private String[] leadPlayers = config.getStringList("leadPlayers").toArray(new String[0]);
 
     /**
@@ -46,6 +48,12 @@ public class LeadManager {
      */
     public void removeLeadPlayer(Player executor, String target) {
 
+        if (executor.getName().equals(executor.getName())) {
+            confirmationManager.sendConfirmation(executor, "remove_youself_from_lead_players", "Вы уверены, что хотите удалить себя из списка ведущих?");
+        } else {
+            confirmationManager.sendConfirmation(executor, "remove_lead_player", "Вы уверены, что хотите удалить игрока " + ChatColor.GREEN + target + ChatColor.WHITE + " из списка ведущих?");
+        }
+
         // Если игрока нет в списке ведущих, то выходим предупреждение
         if (!Arrays.asList(leadPlayers).contains(target)) {
             executor.sendMessage("Игрок " + ChatColor.GREEN + target + ChatColor.WHITE + " не найден в списке ведущих!");
@@ -71,12 +79,21 @@ public class LeadManager {
         executor.playSound(executor.getLocation(), "minecraft:entity.experience_orb.pickup", 1, 1);
     }
 
+    /**
+     * Возвращает список ведущих
+     *
+     * @return Список ведущих
+     */
     public String[] getLeadPlayers() {
         return leadPlayers;
     }
 
+    /**
+     * Возвращает список ведущих в виде строки
+     *
+     * @return Список ведущих
+     */
     public String printLeadPlayers() {
-        // print lead players from array
         String[] newLeadPlayers = new String[leadPlayers.length];
         int index = 0;
         for (String leadPlayer : leadPlayers) {
@@ -84,7 +101,6 @@ public class LeadManager {
             index++;
         }
 
-        // add an empty string to the beginning of the array
         String[] newArray = new String[newLeadPlayers.length + 1];
         newArray[0] = "";
         System.arraycopy(newLeadPlayers, 0, newArray, 1, newLeadPlayers.length);

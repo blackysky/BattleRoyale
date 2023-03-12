@@ -56,8 +56,6 @@ public class LeadCommand implements CommandExecutor {
                 player.sendMessage("У вас нет прав на использование этой команды!");
                 player.playSound(player.getLocation(), "minecraft:entity.experience_orb.pickup", 1, 1);
             }
-        } else {
-            sender.sendMessage("Только игрок может использовать эту команду!");
         }
 
         return true;
